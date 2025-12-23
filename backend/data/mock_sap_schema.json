@@ -1,0 +1,36 @@
+{
+  "tables": [
+    {
+      "name": "VBAK",
+      "description": "Sales Document: Header Data",
+      "type": "transactional",
+      "fields": [
+        {"name": "VBELN", "type": "CHAR(10)", "key": true, "description": "Sales Document"},
+        {"name": "KUNNR", "type": "CHAR(10)", "key": false, "description": "Sold-to party"},
+        {"name": "VKORG", "type": "CHAR(4)", "key": false, "description": "Sales Organization"},
+        {"name": "NETWR", "type": "CURR(15,2)", "key": false, "description": "Net Value"}
+      ],
+      "documentation": "Contains header information for all sales documents"
+    },
+    {
+      "name": "KNA1",
+      "description": "Customer Master (General Data)",
+      "type": "master",
+      "fields": [
+        {"name": "KUNNR", "type": "CHAR(10)", "key": true, "description": "Customer Number"},
+        {"name": "NAME1", "type": "CHAR(35)", "key": false, "description": "Name 1"},
+        {"name": "LAND1", "type": "CHAR(3)", "key": false, "description": "Country Key"}
+      ],
+      "documentation": "Stores general customer master data"
+    }
+  ],
+  "relationships": [
+    {
+      "from": "VBAK",
+      "to": "KNA1",
+      "via": "KUNNR",
+      "type": "explicit",
+      "description": "Sales order references customer"
+    }
+  ]
+}

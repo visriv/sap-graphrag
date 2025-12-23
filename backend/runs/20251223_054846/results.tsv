@@ -1,0 +1,21 @@
+run_id	query_id	task_type	query	expected_answerable	predicted_answerable	table_precision	table_recall	grounded
+20251223_054846	Q000	entity_lookup	Where is customer master data stored?	True	True	1.0	1.0	0
+20251223_054846	Q001	impact	Which tables rely on KNA1?	True	True	0.5	1.0	0
+20251223_054846	Q002	negative_relationship	Is there a foreign key from VBAP to KNA1?	False	True	0.0	1.0	0
+20251223_054846	Q003	entity_lookup	Where is customer master data stored?	True	True	1.0	1.0	0
+20251223_054846	Q004	entity_lookup	Which SAP tables contain customer information?	True	True	1.0	1.0	0
+20251223_054846	Q005	impact	What tables depend on KNA1?	True	True	0.333	1.0	0
+20251223_054846	Q006	entity_lookup	What tables store customer data?	True	True	0.333	1.0	0
+20251223_054846	Q007	relationship	How does VBAK reference customer data?	True	True	1.0	1.0	0
+20251223_054846	Q008	relationship	How is VBAK connected to KNA1?	True	True	1.0	1.0	0
+20251223_054846	Q009	impact	Which tables rely on KNA1?	True	True	0.5	1.0	0
+20251223_054846	Q010	impact	Which tables reference the customer master?	True	True	0.333	1.0	0
+20251223_054846	Q011	impact	What tables depend on KNA1?	True	True	0.5	1.0	0
+20251223_054846	Q012	entity_lookup	Where is customer master data stored?	True	True	1.0	1.0	0
+20251223_054846	Q013	relationship	Explain the link between VBAK and KNA1.	True	True	1.0	1.0	0
+20251223_054846	Q014	relationship	Explain the link between VBAK and KNA1.	True	True	1.0	1.0	0
+20251223_054846	Q015	relationship	Explain the link between VBAK and KNA1.	True	True	1.0	1.0	0
+20251223_054846	Q016	impact	What tables depend on KNA1?	True	True	0.5	1.0	0
+20251223_054846	Q017	negative_relationship	Is there a foreign key from VBAP to KNA1?	False	True	0.0	1.0	0
+20251223_054846	Q018	relationship	Explain the link between VBAK and KNA1.	True	True	1.0	1.0	0
+20251223_054846	Q019	entity_lookup	Which SAP tables contain customer information?	True	True	1.0	1.0	0

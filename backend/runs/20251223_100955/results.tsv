@@ -1,0 +1,41 @@
+run_id	agent	query_id	task_type	query	predicted_tables	expected_tables	predicted_answerable	expected_answerable
+20251223_100955	graph_rag	Q000	impact	Which tables rely on KNA1?	KNA1	VBAK	True	True
+20251223_100955	graph_rag	Q001	impact	What is impacted if customer data changes?		VBAK	True	True
+20251223_100955	graph_rag	Q002	negative_relationship	Does VBAP reference KNA1 without VBAK?	VBAP,VBAK,KNA1		True	False
+20251223_100955	graph_rag	Q003	relationship	How does VBAK reference customer data?	VBAK,KNA1	VBAK,KNA1	True	True
+20251223_100955	graph_rag	Q004	negative_relationship	Can VBAP be joined directly with customer data?	VBAP,VBAK,KNA1		True	False
+20251223_100955	graph_rag	Q005	negative_relationship	Is there a direct join between VBAP and KNA1?	VBAP,VBAK,KNA1		True	False
+20251223_100955	graph_rag	Q006	entity_lookup	Which SAP tables contain customer information?	KNA1	KNA1	True	True
+20251223_100955	graph_rag	Q007	relationship	What is the relationship between sales orders and customers?	VBAP,VBAK,KNA1	VBAK,KNA1	True	True
+20251223_100955	graph_rag	Q008	impact	Which tables reference the customer master?	VBAK,KNA1	VBAK	True	True
+20251223_100955	graph_rag	Q009	relationship	What is the relationship between sales orders and customers?	VBAP,VBAK,KNA1	VBAK,KNA1	True	True
+20251223_100955	graph_rag	Q010	impact	Which tables reference the customer master?	VBAK,KNA1	VBAK	True	True
+20251223_100955	graph_rag	Q011	impact	Which tables reference the customer master?	VBAK,KNA1	VBAK	True	True
+20251223_100955	graph_rag	Q012	negative_relationship	Is there a direct join between VBAP and KNA1?	VBAP,VBAK,KNA1		True	False
+20251223_100955	graph_rag	Q013	relationship	What is the relationship between sales orders and customers?	VBAP,VBAK,KNA1	VBAK,KNA1	True	True
+20251223_100955	graph_rag	Q014	relationship	Explain the link between VBAK and KNA1.	VBAK,KNA1	VBAK,KNA1	True	True
+20251223_100955	graph_rag	Q015	entity_lookup	Which SAP tables contain customer information?	KNA1	KNA1	True	True
+20251223_100955	graph_rag	Q016	negative_relationship	Does VBAP reference KNA1 without VBAK?	VBAP,VBAK,KNA1		True	False
+20251223_100955	graph_rag	Q017	relationship	How is VBAK connected to KNA1?	VBAK,KNA1	VBAK,KNA1	True	True
+20251223_100955	graph_rag	Q018	negative_relationship	Is there a foreign key from VBAP to KNA1?	VBAP,KNA1		True	False
+20251223_100955	graph_rag	Q019	relationship	What is the relationship between sales orders and customers?	VBAP,VBAK,KNA1	VBAK,KNA1	True	True
+20251223_100955	plain_rag	Q000	impact	Which tables rely on KNA1?	VBAK,KNA1	VBAK	True	True
+20251223_100955	plain_rag	Q001	impact	What is impacted if customer data changes?	VBAK,KNA1	VBAK	True	True
+20251223_100955	plain_rag	Q002	negative_relationship	Does VBAP reference KNA1 without VBAK?	VBAP,VBAK,KNA1		False	False
+20251223_100955	plain_rag	Q003	relationship	How does VBAK reference customer data?	VBAK,KNA1	VBAK,KNA1	True	True
+20251223_100955	plain_rag	Q004	negative_relationship	Can VBAP be joined directly with customer data?	VBAP,VBAK,KNA1		True	False
+20251223_100955	plain_rag	Q005	negative_relationship	Is there a direct join between VBAP and KNA1?	VBAP,VBAK,KNA1		False	False
+20251223_100955	plain_rag	Q006	entity_lookup	Which SAP tables contain customer information?	VBAK,KNA1	KNA1	True	True
+20251223_100955	plain_rag	Q007	relationship	What is the relationship between sales orders and customers?	VBAK,KNA1	VBAK,KNA1	True	True
+20251223_100955	plain_rag	Q008	impact	Which tables reference the customer master?	VBAK,KNA1	VBAK	True	True
+20251223_100955	plain_rag	Q009	relationship	What is the relationship between sales orders and customers?	VBAK,KNA1	VBAK,KNA1	True	True
+20251223_100955	plain_rag	Q010	impact	Which tables reference the customer master?	VBAK,KNA1	VBAK	True	True
+20251223_100955	plain_rag	Q011	impact	Which tables reference the customer master?	VBAK,KNA1	VBAK	True	True
+20251223_100955	plain_rag	Q012	negative_relationship	Is there a direct join between VBAP and KNA1?	VBAP,VBAK,KNA1		False	False
+20251223_100955	plain_rag	Q013	relationship	What is the relationship between sales orders and customers?	VBAK,KNA1	VBAK,KNA1	True	True
+20251223_100955	plain_rag	Q014	relationship	Explain the link between VBAK and KNA1.	VBAK,KNA1	VBAK,KNA1	True	True
+20251223_100955	plain_rag	Q015	entity_lookup	Which SAP tables contain customer information?	VBAK,KNA1	KNA1	True	True
+20251223_100955	plain_rag	Q016	negative_relationship	Does VBAP reference KNA1 without VBAK?	VBAP,VBAK,KNA1		False	False
+20251223_100955	plain_rag	Q017	relationship	How is VBAK connected to KNA1?	VBAK,KNA1	VBAK,KNA1	True	True
+20251223_100955	plain_rag	Q018	negative_relationship	Is there a foreign key from VBAP to KNA1?	VBAP,VBAK,KNA1		False	False
+20251223_100955	plain_rag	Q019	relationship	What is the relationship between sales orders and customers?	VBAK,KNA1	VBAK,KNA1	True	True
