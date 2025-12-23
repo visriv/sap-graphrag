@@ -150,7 +150,13 @@ This enables deterministic evaluation.
 ---
 
 
+## TODO:
+- [] : dynamically generate the graph
+- [] : frontend/streamlit
+- [] : precision recall calculation fix
+
 ## Extending This Project
+
 
 Ideas:
 - Dynamically constructing the graph (instead of a synthetic graph we used)
