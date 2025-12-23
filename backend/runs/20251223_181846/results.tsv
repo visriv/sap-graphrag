@@ -1,0 +1,1077 @@
+run_id	agent	query_id	task_type	query	answer	predicted_tables	expected_tables	expected_answerable	predicted_answerable	table_precision	table_recall
+20251223_181846	graph_rag	Q000	relationship	Explain the link between VBAK and KNA1.	"Based on the SAP HANA schema context, I'll explain the relationship between VBAK and KNA1 tables.
+
+## 1. Clear Answer
+
+VBAK (Sales Document Header) and KNA1 (Customer Master General Data) are linked through customer identification fields. VBAK contains transactional sales order data that references customer master data stored in KNA1.
+
+## 2. Relevant Table Names
+
+- **VBAK** - Sales Document: Header Data
+- **KNA1** - Customer Master (General Data)
+
+## 3. Relationship Explanation
+
+The relationship between these tables is:
+- **Type**: One-to-Many relationship
+- **Direction**: KNA1 (1) → VBAK (Many)
+- **Nature**: A single customer in KNA1 can have multiple sales documents in VBAK
+
+## 4. Field-Level Details
+
+**Primary Linking Fields:**
+
+| VBAK Field | KNA1 Field | Description |
+|------------|------------|-------------|
+| KUNNR | KUNNR | Customer Number (Sold-to Party) |
+
+**Additional Customer References in VBAK:**
+- **KUNAG** - Sold-to Party (links to KNA1-KUNNR)
+- **KUNWE** - Ship-to Party (links to KNA1-KUNNR)
+- **KUNRG** - Payer (links to KNA1-KUNNR)
+
+**Join Example:**
+```sql
+SELECT v.VBELN, v.KUNNR, k.NAME1, k.ORT01
+FROM VBAK v
+INNER JOIN KNA1 k ON v.KUNNR = k.KUNNR
+WHERE v.AUART = 'OR'  -- Standard Order
+```
+
+**Business Purpose:**
+This relationship enables sales order processing by connecting transactional sales documents with customer master data, providing access to customer details like name, address, payment terms, and other master data attributes needed for order fulfillment."	VBAK,KNA1	VBAK,KNA1	True	True	1.0	1.0
+20251223_181846	graph_rag	Q001	negative_relationship	Can VBAP be joined directly with customer data?	"Based on SAP standard schema structure, **VBAP cannot be joined directly with customer master data tables**.
+
+## Clear Answer
+No, VBAP (Sales Document Item) does not contain customer fields and requires joins through header tables to access customer information.
+
+## Relevant Table Names
+- **VBAP** - Sales Document Item
+- **VBAK** - Sales Document Header  
+- **KNA1** - Customer Master (General Data)
+- **KNB1** - Customer Master (Company Code Data)
+- **KNVV** - Customer Master (Sales Area Data)
+
+## Relationship Explanations
+
+### Required Join Path:
+```
+VBAP → VBAK → Customer Tables
+```
+
+**Step 1:** VBAP to VBAK
+- Join on: `VBAP.VBELN = VBAK.VBELN`
+- Relationship: Many items to one header
+
+**Step 2:** VBAK to Customer Tables
+- Join on: `VBAK.KUNNR = KNA1.KUNNR` (Sold-to Party)
+- Additional customer roles available via VBAK fields
+
+## Field-Level Details
+
+### VBAP Key Fields:
+- `VBELN` - Sales Document Number
+- `POSNR` - Sales Document Item Number
+
+### VBAK Customer Fields:
+- `KUNNR` - Sold-to Party
+- `KUNAG` - Ship-to Party  
+- `KUNWE` - Ship-to Party
+- `KUNRE` - Bill-to Party
+
+### Join Example:
+```sql
+SELECT v.VBELN, v.POSNR, k.NAME1, k.LAND1
+FROM VBAP v
+INNER JOIN VBAK h ON v.VBELN = h.VBELN
+INNER JOIN KNA1 k ON h.KUNNR = k.KUNNR
+```
+
+This multi-step join is necessary because VBAP focuses on item-specific data while customer information resides at the document header level in VBAK."	VBAP,VBAK,KNA1		False	True	0.0	1.0
+20251223_181846	graph_rag	Q002	entity_lookup	Which SAP tables contain customer information?	"Based on standard SAP table structures, here are the key SAP tables that contain customer information:
+
+## 1. Clear Answer
+The primary SAP tables containing customer information are **KNA1** (Customer Master General Data) and **KNB1** (Customer Master Company Code Data), along with several related tables for specific customer attributes and transactional data.
+
+## 2. Relevant Table Names
+
+### Core Customer Tables:
+- **KNA1** - Customer Master (General Data)
+- **KNB1** - Customer Master (Company Code Data)
+- **KNB5** - Customer Master (Dunning Data)
+- **KNBK** - Customer Master (Bank Details)
+- **KNKA** - Customer Master (Credit Management)
+
+### Extended Customer Information:
+- **ADRC** - Customer Address Data
+- **KNC1** - Customer Master (Transaction Figures)
+- **KNVV** - Customer Master (Sales and Distribution View)
+- **KNVP** - Customer Master (Partner Functions)
+- **KNT1** - Customer Master (Tax Data)
+
+### Transactional Tables:
+- **BSID** - Accounting: Secondary Index for Customers (Open Items)
+- **BSAD** - Accounting: Secondary Index for Customers (Cleared Items)
+
+## 3. Relationship Explanations
+
+- **KNA1 ↔ KNB1**: One-to-many relationship (one customer can exist in multiple company codes)
+- **KNA1 ↔ ADRC**: Linked via address number (ADRNR) for detailed address information
+- **KNA1 ↔ KNVV**: One-to-many relationship for sales organization-specific data
+- **KNB1 ↔ KNC1**: One-to-one relationship for financial transaction figures
+- **KNA1 ↔ KNVP**: One-to-many for partner function assignments
+
+## 4. Field-Level Details
+
+### KNA1 (Key Fields):
+- **KUNNR** - Customer Number (Primary Key)
+- **NAME1** - Customer Name 1
+- **NAME2** - Customer Name 2
+- **STRAS** - Street Address
+- **PSTLZ** - Postal Code
+- **ORT01** - City
+- **LAND1** - Country Key
+- **TELF1** - Telephone Number
+
+### KNB1 (Key Fields):
+- **KUNNR** - Customer Number
+- **BUKRS** - Company Code
+- **AKONT** - Reconciliation Account
+- **ZTERM** - Payment Terms
+- **ZUAWA** - Sort Key
+
+### KNVV (Key Fields):
+- **KUNNR** - Customer Number
+- **VKORG** - Sales Organization
+- **VTWEG** - Distribution Channel
+- **SPART** - Division
+- **KTGRD** - Customer Group
+
+Note: Without access to your specific schema context, these recommendations are based on standard SAP ERP table structures. Your actual implementation may have custom tables or modifications that should also be considered."	KNA1	KNA1	True	True	1.0	1.0
+20251223_181846	graph_rag	Q003	relationship	How is VBAK connected to KNA1?	"Based on standard SAP schema relationships, here's how VBAK is connected to KNA1:
+
+## 1. Clear Answer
+VBAK (Sales Document Header) is connected to KNA1 (Customer Master General Data) through customer number fields, establishing the relationship between sales orders and customer master data.
+
+## 2. Relevant Table Names
+- **VBAK**: Sales Document Header Data
+- **KNA1**: Customer Master (General Section)
+
+## 3. Relationship Explanations
+
+**Primary Connection:**
+- VBAK contains customer references that link to KNA1's customer master records
+- This is a **many-to-one** relationship (many sales documents can belong to one customer)
+- The relationship enables access to customer master data when processing sales documents
+
+**Business Context:**
+- When a sales order is created, it references the customer who placed the order
+- This connection allows the system to retrieve customer-specific information like payment terms, shipping details, and pricing conditions
+
+## 4. Field-Level Details
+
+**Key Connecting Fields:**
+
+| VBAK Field | KNA1 Field | Description |
+|------------|------------|-------------|
+| KUNNR | KUNNR | Sold-to Party (Customer Number) |
+| KUNAG | KUNNR | Ship-to Party (when different from sold-to) |
+| KUNWE | KUNNR | Bill-to Party (when different from sold-to) |
+
+**Additional Related Fields:**
+- **VBAK.VKORG** (Sales Organization) - used with customer sales area data
+- **VBAK.VTWEG** (Distribution Channel) - part of customer sales area
+- **VBAK.SPART** (Division) - part of customer sales area
+
+**Note:** For complete customer sales-specific data, the relationship often extends through **KNVV** (Customer Master Sales Data) which connects both VBAK and KNA1 using the same customer number plus sales area information."	VBAK,KNA1	VBAK,KNA1	True	True	1.0	1.0
+20251223_181846	graph_rag	Q004	impact	What is impacted if customer data changes?	"I'd be happy to help you understand the impact of customer data changes in SAP HANA, but I notice that the schema context information wasn't included in your question. To provide you with specific table names, relationships, and field-level details, I would need to see the actual schema structure.
+
+However, I can provide you with a general framework of what's typically impacted when customer data changes in SAP systems:
+
+## General Impact Areas:
+
+### 1. **Master Data Dependencies**
+- **Customer Master Tables** (typically like KNA1, KNVV, KNVP in SAP ERP)
+- **Business Partner data**
+- **Address and contact information**
+
+### 2. **Transactional Data Impact**
+- **Sales Orders** - pricing, terms, delivery details
+- **Invoices and Billing** - billing addresses, payment terms
+- **Delivery Documents** - shipping addresses, delivery preferences
+- **Credit Management** - credit limits, risk assessments
+
+### 3. **Financial Impact**
+- **Accounts Receivable** - payment terms, dunning procedures
+- **Revenue Recognition** - customer-specific revenue rules
+- **Profitability Analysis** - customer profitability calculations
+
+### 4. **Analytics and Reporting**
+- **Customer segmentation models**
+- **Sales performance reports**
+- **Customer lifetime value calculations**
+- **Predictive analytics models**
+
+**Could you please provide the schema context information?** This would allow me to give you:
+- Specific table names from your schema
+- Exact field relationships and foreign key dependencies
+- Detailed impact analysis based on your actual data model
+- Specific SAP HANA views or procedures that might be affected"	KNA1	VBAK	True	True	0.0	0.0
+20251223_181846	graph_rag	Q005	entity_lookup	Which SAP tables contain customer information?	"I notice that you haven't provided the actual schema information in your question, but I can give you comprehensive information about the standard SAP tables that contain customer information based on typical SAP implementations.
+
+## 1. Clear Answer
+
+The primary SAP tables containing customer information are **KNA1** (Customer Master - General Data) and **KNB1** (Customer Master - Company Code Data). These work together with several supporting tables to provide a complete customer data structure.
+
+## 2. Relevant Table Names
+
+### Core Customer Tables:
+- **KNA1** - Customer Master (General Data)
+- **KNB1** - Customer Master (Company Code Data)
+- **KNVV** - Customer Master (Sales Area Data)
+- **KNVP** - Customer Master (Partner Functions)
+
+### Supporting Customer Tables:
+- **KNT1** - Customer Master (Tax Indicator)
+- **KNKA** - Customer Master (Credit Management)
+- **KNKK** - Customer Master (Credit Management - Control Area)
+- **ADRC** - Addresses (Master Record)
+- **T001** - Company Codes
+- **TVKO** - Sales Organizations
+
+## 3. Relationship Explanations
+
+```
+KNA1 (Customer General) 1:N KNB1 (Company Code Data)
+    |                        |
+    |                   1:N KNKK (Credit Control)
+    |
+1:N KNVV (Sales Area Data)
+    |
+1:N KNVP (Partner Functions)
+```
+
+- **KNA1** serves as the header table with general customer information
+- **KNB1** contains company code-specific data (1 customer can exist in multiple company codes)
+- **KNVV** holds sales area-specific information (sales org, distribution channel, division)
+- **KNVP** stores partner function assignments (sold-to, ship-to, bill-to, payer)
+
+## 4. Field-Level Details
+
+### KNA1 (Customer Master - General Data):
+- **KUNNR** - Customer Number (Primary Key)
+- **NAME1** - Name 1
+- **NAME2** - Name 2
+- **SORTL** - Search Term
+- **STRAS** - Street and House Number
+- **ORT01** - City
+- **PSTLZ** - Postal Code
+- **LAND1** - Country Key
+- **SPRAS** - Language Key
+- **TELF1** - Telephone Number
+- **TELFX** - Fax Number
+- **SMTP_ADDR** - Email Address
+
+### KNB1 (Customer Master - Company Code Data):
+- **KUNNR** - Customer Number (Foreign Key to KNA1)
+- **BUKRS** - Company Code
+- **AKONT** - Reconciliation Account
+- **ZUAWA** - Sort Key
+- **ZTERM** - Terms of Payment
+- **REPRF** - Check Flag for Double Invoices
+
+### KNVV (Customer Master - Sales Area Data):
+- **KUNNR** - Customer Number
+- **VKORG** - Sales Organization
+- **VTWEG** - Distribution Channel
+- **SPART** - Division
+- **WAERS** - Currency
+- **KALKS** - Pricing Procedure
+- **VSBED** - Shipping Conditions
+
+**Note:** To provide more specific guidance for your SAP HANA system, please share the actual schema information you're working with, and I can give you targeted recommendations based on your specific table structures and relationships."	KNA1	KNA1	True	True	1.0	1.0
+20251223_181846	graph_rag	Q006	entity_lookup	Which SAP tables contain customer information?	"I notice that no specific schema context was provided in your question, but I can give you comprehensive information about the standard SAP tables that contain customer information.
+
+## 1. Clear Answer
+
+The primary SAP tables containing customer information are centered around the **KNA1** (Customer Master) table, with several related tables providing additional customer-specific data across different modules.
+
+## 2. Relevant Table Names
+
+### Core Customer Tables:
+- **KNA1** - Customer Master (General Data)
+- **KNB1** - Customer Master (Company Code Data)
+- **KNB5** - Customer Master (Dunning Data)
+- **KNBK** - Customer Master (Bank Details)
+- **KNKA** - Customer Master (Credit Management)
+- **KNKK** - Customer Master (Credit Control Area)
+- **KNVV** - Customer Master (Sales Data)
+- **KNVP** - Customer Master (Partner Functions)
+
+### Supporting Tables:
+- **ADRC** - Address Data
+- **ADR6** - Email Addresses
+- **ADR2** - Telephone Numbers
+- **CDHDR/CDPOS** - Change Documents
+- **T005T** - Country Names
+- **TVKOT** - Sales Organization Texts
+
+## 3. Relationship Explanations
+
+### Primary Relationships:
+- **KNA1** serves as the central hub, linked by customer number (KUNNR)
+- **KNB1** extends KNA1 with company-code specific data (1:N relationship)
+- **KNVV** extends KNA1 with sales organization specific data (1:N relationship)
+- **ADRC** is linked via address number (ADRNR) for physical addresses
+- **KNVP** contains partner functions (sold-to, ship-to, bill-to, payer relationships)
+
+### Key Relationships:
+```
+KNA1 (1) ←→ (N) KNB1 (via KUNNR)
+KNA1 (1) ←→ (N) KNVV (via KUNNR)
+KNA1 (1) ←→ (1) ADRC (via ADRNR)
+KNVV (1) ←→ (N) KNVP (via KUNNR + VKORG + VTWEG + SPART)
+```
+
+## 4. Field-Level Details
+
+### KNA1 (Customer Master - General):
+- **KUNNR** - Customer Number (Primary Key)
+- **NAME1** - Customer Name
+- **SORTL** - Search Term
+- **STRAS** - Street Address
+- **ORT01** - City
+- **PSTLZ** - Postal Code
+- **LAND1** - Country Key
+- **SPRAS** - Language Key
+- **TELF1** - Telephone
+- **KTOKD** - Customer Account Group
+
+### KNB1 (Company Code Data):
+- **KUNNR** - Customer Number
+- **BUKRS** - Company Code
+- **AKONT** - Reconciliation Account
+- **ZTERM** - Payment Terms
+- **ZWELS** - Payment Methods
+
+### KNVV (Sales Data):
+- **KUNNR** - Customer Number
+- **VKORG** - Sales Organization
+- **VTWEG** - Distribution Channel
+- **SPART** - Division
+- **KALKS** - Pricing Procedure
+- **WAERS** - Currency
+
+### ADRC (Address Data):
+- **ADDRNUMBER** - Address Number
+- **STREET** - Street
+- **CITY1** - City
+- **POST_CODE1** - Postal Code
+- **COUNTRY** - Country
+- **REGION** - Region/State
+
+Would you like me to provide more specific information about any of these tables or their relationships?"	KNA1	KNA1	True	True	1.0	1.0
+20251223_181846	graph_rag	Q007	relationship	Explain the link between VBAK and KNA1.	"Based on SAP standard schema, here's the relationship between VBAK and KNA1:
+
+## 1. Clear Answer
+VBAK (Sales Document Header) and KNA1 (Customer Master) are linked through customer number fields, establishing the relationship between sales orders and their corresponding customers.
+
+## 2. Relevant Table Names
+- **VBAK**: Sales Document Header Data
+- **KNA1**: Customer Master (General Data)
+
+## 3. Relationship Explanations
+
+### Primary Link:
+- **VBAK.KUNNR** → **KNA1.KUNNR** (Sold-to Party)
+  - This is the main relationship linking a sales order to its primary customer
+
+### Additional Customer Links in VBAK:
+- **VBAK.KUNAG** → **KNA1.KUNNR** (Sold-to Party - alternative field)
+- **VBAK.KUNWE** → **KNA1.KUNNR** (Ship-to Party)
+- **VBAK.KUNRG** → **KNA1.KUNNR** (Payer)
+
+## 4. Field-Level Details
+
+### VBAK Key Fields:
+- **VBELN**: Sales Document Number (Primary Key)
+- **KUNNR**: Customer Number (Sold-to Party)
+- **KUNAG**: Sold-to Party
+- **KUNWE**: Ship-to Party
+- **KUNRG**: Payer
+
+### KNA1 Key Fields:
+- **KUNNR**: Customer Number (Primary Key)
+- **NAME1**: Customer Name
+- **LAND1**: Country Key
+- **SPRAS**: Language Key
+
+### Typical JOIN Example:
+```sql
+SELECT v.VBELN, v.KUNNR, k.NAME1, k.LAND1
+FROM VBAK v
+INNER JOIN KNA1 k ON v.KUNNR = k.KUNNR
+```
+
+This relationship enables linking sales order header information with customer master data for reporting, customer analysis, and business processes."	VBAK,KNA1	VBAK,KNA1	True	True	1.0	1.0
+20251223_181846	graph_rag	Q008	negative_relationship	Does VBAP reference KNA1 without VBAK?	"Based on standard SAP schema design, I'll analyze the relationship between VBAP, VBAK, and KNA1 tables.
+
+## 1. Clear Answer
+**No, VBAP does not directly reference KNA1 without going through VBAK.**
+
+## 2. Relevant Table Names
+- **VBAP** - Sales Document Item Data
+- **VBAK** - Sales Document Header Data  
+- **KNA1** - Customer Master Data
+
+## 3. Relationship Explanations
+
+The standard SAP relationship flow is:
+```
+VBAP → VBAK → KNA1
+```
+
+**VBAP to VBAK:**
+- VBAP contains item-level data for sales documents
+- Each VBAP record references its header through the sales document number
+- Relationship: VBAP.VBELN = VBAK.VBELN
+
+**VBAK to KNA1:**
+- VBAK contains header-level data including customer information
+- Customer data is stored at the header level, not item level
+- Relationship: VBAK.KUNNR = KNA1.KUNNR (sold-to party)
+
+## 4. Field-Level Details
+
+**Key linking fields:**
+- **VBAP.VBELN** → **VBAK.VBELN** (Sales Document Number)
+- **VBAK.KUNNR** → **KNA1.KUNNR** (Customer Number - Sold-to Party)
+
+**Why this design:**
+- Customer assignment is a header-level attribute
+- Multiple line items (VBAP) belong to one header (VBAK)
+- Storing customer reference at header level avoids redundancy
+- VBAP focuses on material/item-specific data while customer data resides in VBAK
+
+**Exception scenarios:**
+While VBAP might contain partner-related fields for specific business scenarios, the primary customer relationship is established through the header table VBAK."	VBAP,VBAK,KNA1		False	True	0.0	1.0
+20251223_181846	graph_rag	Q009	entity_lookup	Which SAP tables contain customer information?	"Based on my SAP knowledge, here are the main SAP tables that contain customer information:
+
+## 1. Clear Answer
+The primary customer information in SAP is stored across several interconnected tables, with **KNA1** being the central customer master table, supported by various additional tables for specific data types and organizational views.
+
+## 2. Relevant Table Names
+
+### Core Customer Tables:
+- **KNA1** - Customer Master (General Data)
+- **KNB1** - Customer Master (Company Code Data)
+- **KNVV** - Customer Master (Sales Area Data)
+- **KNB5** - Customer Master (Dunning Data)
+- **KNKA** - Customer Master (Credit Management)
+
+### Address and Communication:
+- **ADRC** - Addresses (Master Record)
+- **ADR6** - Email Addresses
+- **ADR2** - Telephone Numbers
+- **ADR3** - Fax Numbers
+
+### Additional Customer-Related Tables:
+- **KNVP** - Customer Master Partner Functions
+- **KNVS** - Customer Master Shipping Data
+- **T001** - Company Codes (for validation)
+- **TVKO** - Sales Organizations
+
+## 3. Relationship Explanations
+
+```
+KNA1 (Customer General Data)
+├── KNB1 (Company Code specific data) - 1:N relationship
+├── KNVV (Sales Area specific data) - 1:N relationship
+├── KNB5 (Dunning data per company code) - 1:N relationship
+└── KNKA (Credit management data) - 1:N relationship
+
+KNA1.ADRNR → ADRC.ADDRNUMBER (Address link)
+ADRC.ADDRNUMBER → ADR6.ADDRNUMBER (Email addresses)
+ADRC.ADDRNUMBER → ADR2.ADDRNUMBER (Phone numbers)
+```
+
+## 4. Field-Level Details
+
+### KNA1 (Key Fields):
+- **KUNNR** - Customer Number (Primary Key)
+- **NAME1** - Customer Name
+- **STRAS** - Street Address
+- **ORT01** - City
+- **PSTLZ** - Postal Code
+- **LAND1** - Country Key
+- **ADRNR** - Address Number (link to ADRC)
+
+### KNB1 (Key Fields):
+- **KUNNR** - Customer Number
+- **BUKRS** - Company Code
+- **AKONT** - Reconciliation Account
+- **ZTERM** - Payment Terms
+
+### KNVV (Key Fields):
+- **KUNNR** - Customer Number
+- **VKORG** - Sales Organization
+- **VTWEG** - Distribution Channel
+- **SPART** - Division
+- **KALKS** - Pricing Procedure
+
+**Note:** Without access to your specific schema context, these recommendations are based on standard SAP table structures. Your actual implementation may have custom tables or modifications that should also be considered."	KNA1	KNA1	True	True	1.0	1.0
+20251223_181846	graph_rag	Q010	impact	Which tables reference the customer master?	"I notice that you've asked about which tables reference the customer master, but the schema context appears to be empty or wasn't included in your message.
+
+To provide you with a comprehensive answer about customer master references, I would need to see:
+
+1. **Schema information** showing the table structures
+2. **Foreign key relationships** 
+3. **Table and field definitions**
+
+## Typical Customer Master References in SAP HANA
+
+However, I can provide you with common patterns for customer master references in SAP systems:
+
+### **Primary Customer Master Table**
+- **KNA1** - Customer Master (General Data)
+- **KNB1** - Customer Master (Company Code Data)
+- **KNVV** - Customer Master (Sales Data)
+
+### **Common Referencing Tables**
+1. **Sales Documents**
+   - VBAK (Sales Document Header) - Field: KUNNR
+   - VBPA (Sales Document Partners) - Field: KUNNR
+
+2. **Financial Documents**
+   - BSID (Customer Open Items) - Field: KUNNR
+   - BSAD (Customer Cleared Items) - Field: KUNNR
+
+3. **Billing and Invoicing**
+   - VBRK (Billing Document Header) - Field: KUNAG, KUNRG
+   - VBRP (Billing Document Item) - Field: various customer fields
+
+Could you please share the schema context so I can provide specific table names, relationship details, and field-level information for your particular system?"	VBAK,KNA1	VBAK	True	True	0.5	1.0
+20251223_181846	graph_rag	Q011	negative_relationship	Is there a foreign key from VBAP to KNA1?	"Based on the question about a foreign key relationship between VBAP and KNA1 tables, I need to provide an analysis. However, I notice that no specific schema information has been provided in the ""Schema Context"" section.
+
+## Answer
+
+Without the actual schema context provided, I cannot definitively confirm the existence of a specific foreign key constraint. However, I can provide insight based on standard SAP table relationships:
+
+## Relevant Table Names
+- **VBAP** - Sales Document Item Data
+- **KNA1** - Customer Master (General Section)
+
+## Relationship Explanation
+
+**Likely Relationship: YES, there is typically a relationship between these tables**
+
+In standard SAP systems, there is usually an **indirect relationship** between VBAP and KNA1:
+
+1. **Direct path**: VBAP → VBAK → KNA1
+   - VBAP links to VBAK (Sales Document Header) via document number
+   - VBAK contains customer number that references KNA1
+
+2. **Possible direct relationship**: In some implementations, VBAP may have a direct customer field
+
+## Field-Level Details (Standard SAP)
+
+**Typical linking fields:**
+- **VBAP.KUNNR** → **KNA1.KUNNR** (if direct relationship exists)
+- Or via VBAP.VBELN → VBAK.VBELN, then VBAK.KUNNR → KNA1.KUNNR
+
+**Key Fields:**
+- **KNA1.KUNNR**: Customer Number (Primary Key)
+- **VBAP.KUNNR**: Customer Number (if present as Foreign Key)
+
+**Note**: To provide a definitive answer, I would need the actual schema information including table structures, constraints, and relationships from your specific SAP HANA system."	VBAP,VBAK,KNA1		False	True	0.0	1.0
+20251223_181846	graph_rag	Q012	relationship	Explain the link between VBAK and KNA1.	"Based on the SAP HANA schema context, I'll explain the relationship between VBAK and KNA1 tables.
+
+## 1. Clear Answer
+
+VBAK (Sales Document Header) and KNA1 (Customer Master General Data) are linked through customer identification fields. VBAK contains sales order information and references customer data stored in KNA1 through customer number fields.
+
+## 2. Relevant Table Names
+
+- **VBAK**: Sales Document Header table
+- **KNA1**: Customer Master General Data table
+
+## 3. Relationship Explanation
+
+The relationship between these tables is:
+- **Type**: One-to-Many relationship
+- **Direction**: KNA1 (1) → VBAK (Many)
+- **Nature**: A single customer in KNA1 can have multiple sales documents in VBAK
+
+The link is established through customer number fields where VBAK references customer records from KNA1.
+
+## 4. Field-Level Details
+
+**Primary Linking Fields:**
+
+**VBAK side:**
+- `KUNNR` - Sold-to Party (Customer Number)
+- `KUNAG` - Ship-to Party 
+- `KUNWE` - Bill-to Party
+- `KUNRG` - Payer
+
+**KNA1 side:**
+- `KUNNR` - Customer Number (Primary Key)
+
+**Additional Context:**
+- VBAK may contain multiple customer-related fields pointing to different customer roles (sold-to, ship-to, bill-to, payer)
+- Each of these customer fields in VBAK should have corresponding records in KNA1
+- The relationship ensures referential integrity between sales documents and customer master data
+- This link enables joining sales transaction data with customer master information for reporting and analysis
+
+**Common Join Pattern:**
+```sql
+SELECT v.*, k.NAME1, k.LAND1
+FROM VBAK v
+INNER JOIN KNA1 k ON v.KUNNR = k.KUNNR
+```
+
+This relationship is fundamental in SAP for connecting sales transactions with customer information across the SD (Sales & Distribution) module."	VBAK,KNA1	VBAK,KNA1	True	True	1.0	1.0
+20251223_181846	graph_rag	Q013	relationship	What is the relationship between sales orders and customers?	"I notice that you've asked about the relationship between sales orders and customers, but the schema context appears to be empty in your message. Without the actual schema information, I cannot provide specific table names, field details, or exact relationship mappings.
+
+However, I can provide you with the **typical relationship structure** found in most SAP HANA systems:
+
+## 1. Clear Answer
+Sales orders and customers have a **many-to-one relationship** - multiple sales orders can belong to a single customer, but each sales order is associated with only one customer.
+
+## 2. Common Table Names (typical SAP structure)
+- **Sales Orders**: Often named `SALES_ORDERS`, `VBAK`, or similar
+- **Customers**: Often named `CUSTOMERS`, `KNA1`, or `CUSTOMER_MASTER`
+- **Sales Order Items**: Usually `SALES_ORDER_ITEMS`, `VBAP`, or similar
+
+## 3. Relationship Explanation
+```
+CUSTOMERS (1) ←→ (Many) SALES_ORDERS
+```
+- One customer can have multiple sales orders over time
+- Each sales order belongs to exactly one customer
+- This is implemented through a foreign key relationship
+
+## 4. Typical Field-Level Details
+- **Primary Key**: Customer ID in the customers table
+- **Foreign Key**: Customer ID reference in the sales orders table
+- **Common field names**: `CUSTOMER_ID`, `KUNNR`, `CLIENT_ID`, or similar
+
+**To provide you with exact details, could you please share the actual schema context?** This would allow me to give you precise table names, field mappings, and relationship details specific to your SAP HANA system."	VBAP,VBAK,KNA1	VBAK,KNA1	True	True	0.667	1.0
+20251223_181846	graph_rag	Q014	relationship	Explain the link between VBAK and KNA1.	"Based on SAP HANA schema knowledge, here's the relationship between VBAK and KNA1:
+
+## 1. Clear Answer
+VBAK (Sales Document Header) and KNA1 (Customer Master General Data) are linked through customer identification fields, establishing the relationship between sales orders and customer master data.
+
+## 2. Relevant Table Names
+- **VBAK**: Sales Document Header (Orders, Quotations, etc.)
+- **KNA1**: Customer Master General Data
+
+## 3. Relationship Explanation
+The relationship is a **one-to-many** relationship where:
+- One customer (KNA1) can have multiple sales documents (VBAK)
+- Each sales document is associated with one or more customers in different roles
+
+**Primary Links:**
+- **Sold-to Party**: VBAK-KUNNR → KNA1-KUNNR
+- **Ship-to Party**: VBAK-KUNWE → KNA1-KUNNR  
+- **Payer**: VBAK-KUNRE → KNA1-KUNNR
+- **Bill-to Party**: VBAK-KUNAG → KNA1-KUNNR
+
+## 4. Field-Level Details
+
+### Key Linking Fields:
+
+**VBAK (Sales Document Header):**
+- `KUNNR` - Sold-to party (Customer number)
+- `KUNAG` - Bill-to party
+- `KUNWE` - Ship-to party
+- `KUNRE` - Payer
+
+**KNA1 (Customer Master):**
+- `KUNNR` - Customer number (Primary key)
+- `NAME1` - Customer name
+- `LAND1` - Country key
+- `STCD1` - Tax number
+- `KTOKD` - Customer account group
+
+### Business Context:
+This relationship enables:
+- Retrieving customer details for sales documents
+- Customer-specific pricing and terms
+- Credit limit checks
+- Address and contact information access
+- Customer classification and segmentation
+
+### Sample Join Query:
+```sql
+SELECT v.VBELN, v.KUNNR, k.NAME1, k.LAND1
+FROM VBAK v
+INNER JOIN KNA1 k ON v.KUNNR = k.KUNNR
+WHERE v.VBTYP = 'C'  -- Sales Orders
+```
+
+This relationship is fundamental for sales order processing and customer management in SAP systems."	VBAK,KNA1	VBAK,KNA1	True	True	1.0	1.0
+20251223_181846	graph_rag	Q015	negative_relationship	Does VBAP reference KNA1 without VBAK?	"Based on standard SAP ERP schema design, here's the analysis of whether VBAP references KNA1 without going through VBAK:
+
+## 1. Clear Answer
+**No, VBAP does not directly reference KNA1 without VBAK.** VBAP references customer data through the sales document header table VBAK.
+
+## 2. Relevant Table Names
+- **VBAP** - Sales Document Item Data
+- **VBAK** - Sales Document Header Data  
+- **KNA1** - Customer Master (General Data)
+
+## 3. Relationship Explanations
+
+### Standard Data Flow:
+```
+KNA1 → VBAK → VBAP
+```
+
+- **KNA1 to VBAK**: Customer master data flows to the sales document header
+- **VBAK to VBAP**: Header data (including customer info) is inherited by line items
+- **No Direct VBAP to KNA1**: There is no direct foreign key relationship between VBAP and KNA1
+
+### Why This Design Makes Sense:
+- Customer information is document-level data (header level)
+- All line items within a sales document belong to the same customer
+- This prevents data redundancy and maintains referential integrity
+- Changes to customer assignment affect the entire document, not individual line items
+
+## 4. Field-Level Details
+
+### Key Fields in the Relationship:
+- **VBAK.KUNNR** → References **KNA1.KUNNR** (Sold-to Party)
+- **VBAP.VBELN** → References **VBAK.VBELN** (Sales Document Number)
+- **VBAP** inherits customer context through its parent document header
+
+### Additional Customer References in VBAK:
+- **KUNAG** - Sold-to Party
+- **KUNWE** - Ship-to Party  
+- **KUNRE** - Bill-to Party
+- **KUNRG** - Payer
+
+This hierarchical design ensures data consistency and follows SAP's standard document structure where header-level information (like customer) is not duplicated at the item level."	VBAP,VBAK,KNA1		False	True	0.0	1.0
+20251223_181846	graph_rag	Q016	negative_relationship	Is there a direct join between VBAP and KNA1?	"Based on standard SAP ERP schema structure, there is **NO direct join** between VBAP (Sales Document Item) and KNA1 (Customer Master).
+
+## Answer Details:
+
+**1. Clear Answer:** No direct relationship exists between these tables.
+
+**2. Relevant Table Names:**
+- **VBAP** - Sales Document: Item Data
+- **KNA1** - Customer Master (General Data)
+- **VBAK** - Sales Document: Header Data (required intermediary)
+
+**3. Relationship Explanation:**
+The relationship requires going through the header table:
+- VBAP contains item-level data but no direct customer field
+- Customer information (KUNNR) is stored at the header level in VBAK
+- KNA1 contains customer master data keyed by customer number
+
+**4. Field-Level Details:**
+
+**Indirect Join Path:**
+```sql
+VBAP → VBAK → KNA1
+```
+
+**Join Fields:**
+- VBAP.VBELN = VBAK.VBELN (Sales Document Number)
+- VBAK.KUNNR = KNA1.KUNNR (Customer Number - Sold-to Party)
+
+**Alternative Customer Relationships in VBAK:**
+- KUNNR (Sold-to Party)
+- KUNAG (Ship-to Party) 
+- KUNRG (Payer)
+- KUNWE (Ship-to Party)
+
+**Recommended Join Query:**
+```sql
+SELECT v.*, k.*
+FROM VBAP v
+INNER JOIN VBAK h ON v.VBELN = h.VBELN
+INNER JOIN KNA1 k ON h.KUNNR = k.KUNNR
+```
+
+This three-table join is the standard approach to connect sales item data with customer master information in SAP."	VBAP,VBAK,KNA1		False	True	0.0	1.0
+20251223_181846	graph_rag	Q017	relationship	What is the relationship between sales orders and customers?	"I notice that you mentioned there would be schema context provided, but I don't see any specific schema information in your message. However, I can provide you with a general explanation of the typical relationship between sales orders and customers in SAP HANA systems, particularly in SAP S/4HANA.
+
+## 1. Clear Answer
+The relationship between sales orders and customers is typically a **one-to-many relationship**, where one customer can have multiple sales orders, but each sales order belongs to exactly one customer (sold-to party).
+
+## 2. Relevant Table Names
+In SAP HANA/S/4HANA systems, the key tables include:
+
+**Sales Order Tables:**
+- `VBAK` - Sales Document Header
+- `VBAP` - Sales Document Item
+- `VBUK` - Sales Document Status
+- `VBUP` - Sales Document Item Status
+
+**Customer Master Tables:**
+- `KNA1` - Customer Master General Data
+- `KNVV` - Customer Master Sales Data
+- `KNVP` - Customer Master Partner Functions
+
+## 3. Relationship Explanations
+
+**Primary Relationship:**
+- **VBAK.KUNNR** (Sold-to Party) → **KNA1.KUNNR** (Customer Number)
+- This creates the main link between sales orders and customers
+
+**Additional Customer Relationships:**
+Sales orders can also reference customers in different partner functions:
+- Ship-to Party (`VBPA` table with partner function 'WE')
+- Bill-to Party (`VBPA` table with partner function 'RE')
+- Payer (`VBPA` table with partner function 'RG')
+
+## 4. Field-Level Details
+
+**Key Linking Fields:**
+- `VBAK.KUNNR` - Customer number (sold-to party)
+- `KNA1.KUNNR` - Customer number (primary key)
+- `VBAK.VBELN` - Sales document number (primary key)
+
+**Important Related Fields:**
+- `VBAK.VKORG` - Sales organization
+- `VBAK.VTWEG` - Distribution channel
+- `VBAK.SPART` - Division
+- `KNVV.VKORG/VTWEG/SPART` - Corresponding sales area data in customer master
+
+**Sample Relationship Query Structure:**
+```sql
+SELECT 
+    so.VBELN,
+    so.KUNNR,
+    cust.NAME1
+FROM VBAK so
+INNER JOIN KNA1 cust 
+    ON so.KUNNR = cust.KUNNR
+```
+
+To provide more specific and accurate information, please share the actual schema context you mentioned, and I can give you a more tailored analysis based on your specific table structures and relationships."	VBAP,VBAK,KNA1	VBAK,KNA1	True	True	0.667	1.0
+20251223_181846	graph_rag	Q018	impact	Which tables reference the customer master?	"I notice that you've asked about which tables reference the customer master, but the schema context information appears to be missing or empty in your message. Without the specific schema details, I cannot provide the exact table names and relationships from your particular SAP HANA system.
+
+However, I can provide you with a general framework for what typically references customer master data in SAP systems:
+
+## Common Tables That Reference Customer Master:
+
+### **Sales and Distribution:**
+- **VBAK** (Sales Document Header) - via KUNNR field
+- **VBAP** (Sales Document Item) - inherits customer from header
+- **VBPA** (Sales Document Partner) - via KUNNR field for different partner functions
+- **LIKP** (Delivery Header) - via KUNNR field
+- **VBRK** (Billing Document Header) - via KUNAG/KUNRG fields
+
+### **Financial Accounting:**
+- **BSID/BSAD** (Customer Open/Cleared Items) - via KUNNR field
+- **BKPF** (Document Header) - indirectly through line items
+- **FAGLFLEXA** (General Ledger) - via customer account assignments
+
+### **Customer Relationship Management:**
+- **CRM Transaction tables** - various KUNNR references
+- **Service orders and complaints** - customer linkages
+
+## To Get Your Specific Answer:
+
+Please provide the schema context information, and I'll give you:
+
+1. **Exact table names** from your schema
+2. **Specific field relationships** (foreign key constraints)
+3. **Relationship types** (1:1, 1:many, etc.)
+4. **Field-level mapping details**
+
+Could you please share the schema context so I can provide a precise analysis of your customer master references?"	VBAP,VBAK	VBAK	True	True	0.5	1.0
+20251223_181846	graph_rag	Q019	relationship	What is the relationship between sales orders and customers?	"I notice that you've asked about the relationship between sales orders and customers in SAP HANA, but the schema context appears to be empty in your message. Without the specific schema information, I'll provide a general answer based on typical SAP HANA sales data models.
+
+## 1. Clear Answer
+In SAP HANA sales data models, there is typically a **many-to-one relationship** between sales orders and customers. This means:
+- One customer can have multiple sales orders
+- Each sales order belongs to exactly one customer
+
+## 2. Relevant Table Names (Typical SAP Structure)
+- **Sales Orders Table**: Often named `SALES_ORDERS`, `VBAK`, or similar
+- **Customer Master Table**: Often named `CUSTOMERS`, `KNA1`, or `CUSTOMER_MASTER`
+- **Sales Order Items**: Often named `SALES_ORDER_ITEMS`, `VBAP`, or similar (for line-item details)
+
+## 3. Relationship Explanations
+```
+CUSTOMERS (1) ←→ (Many) SALES_ORDERS
+```
+
+- **Primary relationship**: Customer ID serves as the foreign key in the sales orders table
+- **Business logic**: Customers place orders over time, creating historical sales data
+- **Referential integrity**: Sales orders must reference valid customers
+
+## 4. Field-Level Details (Typical Structure)
+
+**Customer Table:**
+- `CUSTOMER_ID` (Primary Key)
+- `CUSTOMER_NAME`
+- `CUSTOMER_TYPE`
+- `CREDIT_LIMIT`
+
+**Sales Orders Table:**
+- `ORDER_ID` (Primary Key)
+- `CUSTOMER_ID` (Foreign Key → CUSTOMERS.CUSTOMER_ID)
+- `ORDER_DATE`
+- `ORDER_VALUE`
+- `ORDER_STATUS`
+
+**Join Example:**
+```sql
+SELECT c.CUSTOMER_NAME, so.ORDER_ID, so.ORDER_DATE, so.ORDER_VALUE
+FROM CUSTOMERS c
+INNER JOIN SALES_ORDERS so ON c.CUSTOMER_ID = so.CUSTOMER_ID
+```
+
+To provide more specific details, please share the actual schema context for your SAP HANA system."	VBAP,VBAK,KNA1	VBAK,KNA1	True	True	0.667	1.0
+20251223_181846	plain_rag	Q000	relationship	Explain the link between VBAK and KNA1.	"The link between VBAK and KNA1 is through the **KUNNR** field:
+
+- **VBAK.KUNNR** (Sold-to party) links to **KNA1.KUNNR** (Customer Number)
+
+This relationship allows you to join sales document header data with customer master data to get customer details like name and country for each sales document."	VBAK,KNA1	VBAK,KNA1	True	True	1.0	1.0
+20251223_181846	plain_rag	Q001	negative_relationship	Can VBAP be joined directly with customer data?	"No, VBAP cannot be joined directly with customer data.
+
+VBAP (Sales Document: Item Data) contains the VBELN (Sales Document) field but not KUNNR (Customer Number). To join VBAP with customer data from KNA1, you must first join VBAP to VBAK using VBELN, then join VBAK to KNA1 using KUNNR.
+
+The join path is: VBAP → VBAK → KNA1"	VBAP,VBAK,KNA1		False	True	0.0	1.0
+20251223_181846	plain_rag	Q002	entity_lookup	Which SAP tables contain customer information?	"Based on the provided schema documentation, the table that contains customer information is:
+
+**KNA1: Customer Master (General Data)**
+
+This table contains:
+- KUNNR: Customer Number
+- NAME1: Name 1 
+- LAND1: Country Key
+
+The VBAK table also references customers through the KUNNR field (Sold-to party), but it's primarily sales document data rather than customer master data.
+
+Note: There are other SAP customer tables not mentioned in your schema (like KNB1, KNVV, etc.), but I can only confirm KNA1 from the documentation provided."	VBAK,KNA1	KNA1	True	True	0.5	1.0
+20251223_181846	plain_rag	Q003	relationship	How is VBAK connected to KNA1?	"VBAK is connected to KNA1 through the KUNNR field:
+
+- VBAK.KUNNR (Sold-to party) joins to KNA1.KUNNR (Customer Number)
+
+This allows you to link sales document header data with customer master data to get customer details like name and country for each sales document."	VBAK,KNA1	VBAK,KNA1	True	True	1.0	1.0
+20251223_181846	plain_rag	Q004	impact	What is impacted if customer data changes?	"When customer data in KNA1 changes, the following are typically impacted:
+
+**Direct Impacts:**
+- **Sales documents (VBAK)** - Customer name and country changes affect existing and new sales orders
+- **Reporting and analytics** - Customer-based reports will reflect updated information
+- **Data consistency** - Historical vs. current customer information may create inconsistencies
+
+**Potential Downstream Impacts:**
+- **Billing/invoicing** - Customer name and address changes
+- **Credit management** - If country/region affects credit rules
+- **Pricing** - If customer-specific or country-specific pricing applies
+- **Tax determination** - Country changes may affect tax calculations
+- **Partner functions** - If customer serves multiple roles (sold-to, ship-to, etc.)
+
+**Key Considerations:**
+- Changes are typically **not retroactive** to completed transactions
+- **Active sales processes** may need manual review
+- **Integration points** with other systems may require synchronization
+
+The exact impact depends on which specific fields change (NAME1 vs. LAND1 have different implications) and your system's configuration for change documents and dependent processes."	VBAK,KNA1	VBAK	True	True	0.5	1.0
+20251223_181846	plain_rag	Q005	entity_lookup	Which SAP tables contain customer information?	"Based on the schema documentation provided, **KNA1** (Customer Master - General Data) contains customer information.
+
+KNA1 stores general customer master data including:
+- Customer Number (KUNNR)
+- Customer Name (NAME1) 
+- Country Key (LAND1)
+
+While VBAK contains a customer reference (KUNNR for Sold-to party), it's primarily sales document header data, not customer master information.
+
+Note: There are other SAP customer tables not shown in your schema (like KNB1, KNVV, etc.) that also contain customer information for different views (company code, sales area, etc.)."	VBAK,KNA1	KNA1	True	True	0.5	1.0
+20251223_181846	plain_rag	Q006	entity_lookup	Which SAP tables contain customer information?	"Based on the schema documentation provided, the table that contains customer information is:
+
+**KNA1 - Customer Master (General Data)**
+
+This table contains core customer data including:
+- KUNNR: Customer Number
+- NAME1: Name 1
+- LAND1: Country Key
+
+While VBAK contains a customer reference (KUNNR for Sold-to party), it's primarily a sales document header table, not a customer information table.
+
+Note: In a complete SAP system, there are additional customer-related tables (like KNB1 for customer master company code data, KNVV for customer master sales data, etc.), but based on the schema provided, KNA1 is the main customer information table."	VBAK,KNA1	KNA1	True	True	0.5	1.0
+20251223_181846	plain_rag	Q007	relationship	Explain the link between VBAK and KNA1.	"The link between VBAK and KNA1 is through the **KUNNR** field:
+
+- **VBAK.KUNNR** (Sold-to party) links to **KNA1.KUNNR** (Customer Number)
+
+This relationship allows you to join sales document header data with customer master data to get customer details like name and country for each sales document."	VBAK,KNA1	VBAK,KNA1	True	True	1.0	1.0
+20251223_181846	plain_rag	Q008	negative_relationship	Does VBAP reference KNA1 without VBAK?	I cannot answer this question because VBAP table is not described in the schema documentation provided. The documentation only covers VBAK and KNA1 tables, so I cannot determine VBAP's structure or relationships.	VBAP,VBAK,KNA1		False	False	0.0	1.0
+20251223_181846	plain_rag	Q009	entity_lookup	Which SAP tables contain customer information?	"Based on the schema documentation provided, **KNA1** contains customer information.
+
+KNA1 (Customer Master - General Data) stores:
+- Customer Number (KUNNR)
+- Customer Name (NAME1) 
+- Country Key (LAND1)
+
+VBAK contains sales document data with a reference to the customer (KUNNR as Sold-to party), but it's primarily sales document header data rather than customer master data."	VBAK,KNA1	KNA1	True	True	0.5	1.0
+20251223_181846	plain_rag	Q010	impact	Which tables reference the customer master?	"Based on the provided schema documentation, table **VBAK** references the customer master table **KNA1** through the **KUNNR** field (Customer Number/Sold-to party).
+
+However, I should note that in a typical SAP system, many other tables would also reference KNA1 through the KUNNR field, but I can only identify what's shown in the documentation provided."	VBAK,KNA1	VBAK	True	True	0.5	1.0
+20251223_181846	plain_rag	Q011	negative_relationship	Is there a foreign key from VBAP to KNA1?	"I cannot determine if there's a foreign key from VBAP to KNA1 based on the provided schema documentation, as VBAP table structure is not included in the documentation you've given me.
+
+However, I can see that both VBAK and KNA1 have the KUNNR field, which would typically form a foreign key relationship between these two tables (VBAK.KUNNR → KNA1.KUNNR).
+
+To answer your question about VBAP to KNA1, I would need the VBAP table structure."	VBAP,VBAK,KNA1		False	False	0.0	1.0
+20251223_181846	plain_rag	Q012	relationship	Explain the link between VBAK and KNA1.	"The tables VBAK and KNA1 are linked through the **KUNNR** field:
+
+- **VBAK.KUNNR** (Sold-to party) references **KNA1.KUNNR** (Customer Number)
+
+This establishes a relationship where each sales document header in VBAK is associated with customer master data in KNA1, allowing you to retrieve customer details (like name and country) for sales transactions."	VBAK,KNA1	VBAK,KNA1	True	True	1.0	1.0
+20251223_181846	plain_rag	Q013	relationship	What is the relationship between sales orders and customers?	"Based on the schema documentation, the relationship between sales orders and customers is:
+
+**One-to-Many relationship**: One customer can have multiple sales orders.
+
+- Sales orders (VBAK table) are linked to customers via the KUNNR field (Sold-to party)
+- Customer master data is stored in KNA1 table with KUNNR as the primary key
+- Each sales order (VBELN) has exactly one sold-to party (KUNNR), but one customer can be associated with many sales orders
+
+The join condition would be: `VBAK.KUNNR = KNA1.KUNNR`"	VBAK,KNA1	VBAK,KNA1	True	True	1.0	1.0
+20251223_181846	plain_rag	Q014	relationship	Explain the link between VBAK and KNA1.	"The link between VBAK and KNA1 is through the **KUNNR field**:
+
+- VBAK.KUNNR (Sold-to party) joins to KNA1.KUNNR (Customer Number)
+
+This relationship allows you to connect sales document header data with customer master data, enabling queries that combine sales information (like net value, sales organization) with customer details (like customer name and country).
+
+The join would typically be:
+```sql
+SELECT * FROM VBAK v
+INNER JOIN KNA1 k ON v.KUNNR = k.KUNNR
+```"	VBAK,KNA1	VBAK,KNA1	True	True	1.0	1.0
+20251223_181846	plain_rag	Q015	negative_relationship	Does VBAP reference KNA1 without VBAK?	"I'm unsure because you haven't provided the schema documentation for table VBAP. 
+
+From the information given, I only see VBAK (Sales Document Header) and KNA1 (Customer Master) schemas. VBAK references KNA1 through the KUNNR field, but without seeing VBAP's structure, I cannot determine if VBAP has a direct relationship to KNA1 or if it only connects through VBAK."	VBAP,VBAK,KNA1		False	False	0.0	1.0
+20251223_181846	plain_rag	Q016	negative_relationship	Is there a direct join between VBAP and KNA1?	"Based on the schema documentation provided, I cannot determine if there's a direct join between VBAP and KNA1 because **VBAP table structure is not documented** in your schema.
+
+However, I can see that:
+- VBAK (Sales Document Header) can join to KNA1 via KUNNR (Customer Number)
+- If VBAP is the Sales Document Item table (as is standard in SAP), it would typically join to KNA1 **indirectly** through VBAK, not directly.
+
+I'm unsure about the direct relationship since VBAP's schema isn't provided."	VBAP,VBAK,KNA1		False	False	0.0	1.0
+20251223_181846	plain_rag	Q017	relationship	What is the relationship between sales orders and customers?	"Based on the schema documentation, the relationship between sales orders and customers is:
+
+**One-to-Many relationship**: One customer can have multiple sales orders.
+
+- Sales orders (VBAK table) link to customers through the KUNNR field (Sold-to party)
+- Customer master data is stored in KNA1 table with KUNNR as the primary key
+- The KUNNR field in VBAK is a foreign key reference to KNA1.KUNNR
+
+Each sales order belongs to exactly one sold-to party (customer), but a customer can have multiple sales orders over time."	VBAK,KNA1	VBAK,KNA1	True	True	1.0	1.0
+20251223_181846	plain_rag	Q018	impact	Which tables reference the customer master?	"Based on the provided schema documentation, table **VBAK** references the customer master table KNA1 through the **KUNNR** field (Customer Number/Sold-to party).
+
+However, I should note that in a complete SAP system, many other tables would also reference KNA1 through the KUNNR field, but I can only identify what's shown in the documentation provided."	VBAK,KNA1	VBAK	True	True	0.5	1.0
+20251223_181846	plain_rag	Q019	relationship	What is the relationship between sales orders and customers?	"Based on the schema documentation, the relationship between sales orders and customers is:
+
+**One-to-Many relationship**: One customer can have multiple sales orders.
+
+The relationship is established through the **KUNNR** field:
+- VBAK.KUNNR (Sold-to party) references KNA1.KUNNR (Customer Number)
+- Each sales order (VBAK.VBELN) is linked to exactly one customer
+- Each customer can be associated with multiple sales orders
+
+This is a standard foreign key relationship where KUNNR in the sales document header references the customer master data."	VBAK,KNA1	VBAK,KNA1	True	True	1.0	1.0
